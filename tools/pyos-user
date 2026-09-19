@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""pyos-user — command-line front-end to system/users/accounts.py."""
+
+from __future__ import annotations
+
+import argparse
+import getpass
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from system.users.accounts import DEFAULT_DB_PATH, UserDatabase, UserError  # noqa: E402
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(prog="pyos-user", description="Manage PythonOS user accounts")
+    p.add_argument("--db", default=str(DEFAULT_DB_PATH), help="path to the users database")
+    sub = p.add_subparsers(dest="command", required=True)
+
+    add = sub.add_parser("add", help="create a new user")
+    add.add_argument("username")
+    add.add_argument("--group", action="append", default=[], dest="groups")
+    add.add_argument("--shell", default="/usr/bin/pysh")
+
+    sub_del = sub.add_parser("del", help="delete a user")
+    sub_del.add_argument("username")
+
+    passwd = sub.add_parser("passwd", help="set a user's password")
+    passwd.add_argument("username")
+
+    lock = sub.add_parser("lock", help="lock a user account")
+    lock.add_argument("username")
+
+    unlock = sub.add_parser("unlock", help="unlock a user account")
+    unlock.add_argument("username")
+
+    sub.add_parser("list", help="list users")
+
+    return p
+
+
+def main(argv: list[str]) -> int:
+    args = build_parser().parse_args(argv[1:])
+    db = UserDatabase(args.db)
+
+    try:
+        if args.command == "add":
+            password = getpass.getpass(f"Password for {args.username}: ")
+            user = db.create_user(args.username, password, shell=args.shell, extra_groups=args.groups)
+            db.save()
+            print(f"created user {user.username} (uid={user.uid}, gid={user.gid})")
+        elif args.command == "del":
+            db.delete_user(args.username)
+            db.save()
+            print(f"deleted user {args.username}")
+        elif args.command == "passwd":
+            password = getpass.getpass(f"New password for {args.username}: ")
+            db.set_password(args.username, password)
+            db.save()
+            print("password updated")
+        elif args.command == "lock":
+            db.lock_user(args.username)
+            db.save()
+            print(f"locked {args.username}")
+        elif args.command == "unlock":
+            db.unlock_user(args.username)
+            db.save()
+            print(f"unlocked {args.username}")
+        elif args.command == "list":
+            for user in sorted(db.users.values(), key=lambda u: u.uid):
+                status = "locked" if user.locked else "active"
+                print(f"{user.uid}\t{user.username}\t{user.home}\t{status}")
+    except UserError as exc:
+        print(f"pyos-user: {exc}", file=sys.stderr)
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

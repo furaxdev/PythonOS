@@ -18,7 +18,19 @@ grub-mkrescue/debootstrap preinstalled (installable via apt), no GPU/display.
 unit-tested; not yet wired as real PID 1 inside the initramfs boot chain.
 
 ## Phase 3 — System services (users, network, audio, power, devices)
-`PLANNED`
+`PARTIAL` — users, network, and power are implemented and unit-tested (37
+tests across the three). Audio and devices are `PLANNED`.
+
+- `system/users/accounts.py` — `UserDatabase`: create/delete users, groups,
+  PBKDF2-hashed passwords (never plaintext), lock/unlock, JSON persistence.
+  CLI: `tools/pyos-user` (add/del/passwd/lock/unlock/list).
+- `system/network/interfaces.py` — real interface enumeration via
+  `/sys/class/net` + `/proc/net/dev` (no netlink lib, no shelling out to
+  `ip`); `NetworkManager` configures interfaces (up/down, static IP) via
+  raw ioctl on a socket, injectable for testing.
+- `system/power/power.py` — battery/AC state via `/sys/class/power_supply`;
+  `PowerManager` for poweroff/reboot/suspend, with an injectable
+  `ActionRunner` for testing.
 
 ## Phase 4 — PythonOS Shell (pysh)
 `PARTIAL` — see `docs/SHELL.md`.
@@ -47,7 +59,9 @@ in ARCHITECTURE.md.
 `PLANNED`
 
 ## Next up
-1. Wire `system/init/pyinit.py` as actual PID 1 inside the initramfs (currently
-   boot-tested standalone; integration into the initramfs init chain is next).
-2. Expand `pysh` builtins (pipes/redirection are implemented; job control is not).
-3. Start Phase 3 (system/users) once init integration is solid.
+1. Finish Phase 3: `system/audio`, `system/devices`.
+2. Wire real service units (users/network/power) into the initramfs boot
+   chain as actual PID-1-managed services, replacing the placeholder
+   oneshot examples.
+3. Start Phase 5 (graphical session) — needs a virtual framebuffer
+   strategy decided first (see BLOCKED note above).
