@@ -1,0 +1,7 @@
+{
+  "name": "desktop-session",
+  "exec_start": ["/bin/echo", "desktop session placeholder"],
+  "depends_on": ["network", "logger"],
+  "restart": false,
+  "oneshot": true
+}

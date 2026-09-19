@@ -1,0 +1,21 @@
+c[?7l[2J[0mSeaBIOS (version 1.16.3-debian-1.16.3-2)
+
+
+iPXE (https://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFCAE00+1EF0AE00 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...                                                                               
+
+
+Booting from ROM...
+c[?7l[2J[initramfs] Linux kernel is up. Handing off to PythonOS init (Python).
+[pyinit] PythonOS init starting (pid=1)
+mount: mounting sysfs on /sys failed: Device or resource busy
+mount: mounting devtmpfs on /dev failed: Device or resource busy
+[pyinit] started service network (pid=87)
+[pyinit] started service logger (pid=88)
+network service placeholder
+pythonos-logger alive
+[pyinit] started service desktop-session (pid=89)
+[pyinit] oneshot service network finished (status=0)
+desktop session placeholder
+[pyinit] oneshot service desktop-session finished (status=0)
+pythonos-logger alive

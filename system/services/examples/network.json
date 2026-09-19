@@ -1,0 +1,7 @@
+{
+  "name": "network",
+  "exec_start": ["/bin/echo", "network service placeholder"],
+  "depends_on": [],
+  "restart": false,
+  "oneshot": true
+}

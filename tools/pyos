@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+"""pyos — PythonOS developer/diagnostic CLI.
+
+Currently implements `pyos doctor`, which checks that the tools and
+resources needed to build and boot-test PythonOS are present.
+"""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+OK = "\033[32m[OK]\033[0m"
+WARN = "\033[33m[WARN]\033[0m"
+FAIL = "\033[31m[FAIL]\033[0m"
+
+
+def check_binary(name: str, required: bool = True) -> tuple[bool, str]:
+    path = shutil.which(name)
+    if path:
+        return True, f"{OK} {name} ({path})"
+    level = FAIL if required else WARN
+    return not required, f"{level} {name} not found"
+
+
+def check_python_version() -> tuple[bool, str]:
+    v = sys.version_info
+    ok = v >= (3, 10)
+    label = OK if ok else FAIL
+    return ok, f"{label} Python {v.major}.{v.minor}.{v.micro}"
+
+
+def check_kernel() -> tuple[bool, str]:
+    vmlinuz = Path("/boot/vmlinuz")
+    if vmlinuz.exists() or vmlinuz.is_symlink():
+        return True, f"{OK} Linux kernel image present ({vmlinuz.resolve()})"
+    return False, f"{FAIL} no /boot/vmlinuz found — install a linux-image package"
+
+
+def check_disk_space(min_gb: float = 1.0) -> tuple[bool, str]:
+    usage = shutil.disk_usage(REPO_ROOT)
+    free_gb = usage.free / (1024 ** 3)
+    ok = free_gb >= min_gb
+    label = OK if ok else WARN
+    return ok, f"{label} {free_gb:.1f} GB free disk space"
+
+
+def check_memory(min_gb: float = 0.5) -> tuple[bool, str]:
+    try:
+        meminfo = Path("/proc/meminfo").read_text()
+        total_kb = int(meminfo.split("MemTotal:")[1].split("kB")[0].strip())
+        total_gb = total_kb / (1024 ** 2)
+    except (FileNotFoundError, IndexError, ValueError):
+        return True, f"{WARN} could not read /proc/meminfo"
+    ok = total_gb >= min_gb
+    label = OK if ok else WARN
+    return ok, f"{label} {total_gb:.1f} GB total memory"
+
+
+def check_initramfs_build() -> tuple[bool, str]:
+    out = REPO_ROOT / "build" / "initramfs.cpio.gz"
+    if out.exists():
+        size_mb = out.stat().st_size / (1024 ** 2)
+        return True, f"{OK} initramfs built ({size_mb:.1f} MB) at {out}"
+    return True, f"{WARN} initramfs not built yet — run scripts/build_initramfs.sh"
+
+
+def check_dependencies() -> list[tuple[bool, str]]:
+    return [
+        check_python_version(),
+        check_binary("qemu-system-x86_64"),
+        check_binary("busybox"),
+        check_binary("cpio"),
+        check_binary("rsync"),
+        check_kernel(),
+        check_disk_space(),
+        check_memory(),
+        check_initramfs_build(),
+    ]
+
+
+def run_tests_quietly() -> tuple[bool, str]:
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/unit", "-q"],
+        cwd=REPO_ROOT, capture_output=True, text=True,
+    )
+    ok = result.returncode == 0
+    label = OK if ok else FAIL
+    last_line = (result.stdout.strip().splitlines() or [""])[-1]
+    return ok, f"{label} unit tests: {last_line}"
+
+
+def doctor() -> int:
+    print("PythonOS Doctor\n")
+    checks = check_dependencies()
+    checks.append(run_tests_quietly())
+
+    any_fail = False
+    for ok, message in checks:
+        print(message)
+        if not ok:
+            any_fail = True
+
+    print()
+    if any_fail:
+        print(f"{FAIL} one or more required checks failed.")
+        return 1
+    print(f"{OK} PythonOS build environment looks good.")
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) < 2 or argv[1] != "doctor":
+        print("usage: pyos doctor", file=sys.stderr)
+        return 2
+    return doctor()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

@@ -1,0 +1,7 @@
+{
+  "name": "logger",
+  "exec_start": ["/bin/sh", "-c", "while true; do echo pythonos-logger alive; sleep 5; done"],
+  "depends_on": [],
+  "restart": true,
+  "restart_max": 5
+}
