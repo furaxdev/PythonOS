@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""pyos-login — command-line login manager front-end (text-mode "greeter").
+
+Exercises the real LoginManager end-to-end: authenticates against the
+PythonOS user database and execs the chosen session, exactly like SDDM
+handing off to startplasma, just without a graphical greeter yet.
+"""
+
+from __future__ import annotations
+
+import getpass
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from system.session.login import DEFAULT_SESSIONS_DIR, LoginError, LoginManager, list_sessions  # noqa: E402
+from system.users.accounts import DEFAULT_DB_PATH, AuthenticationError, UserDatabase  # noqa: E402
+
+
+def main(argv: list[str]) -> int:
+    db_path = argv[1] if len(argv) > 1 else str(DEFAULT_DB_PATH)
+    sessions_dir = Path(argv[2]) if len(argv) > 2 else DEFAULT_SESSIONS_DIR
+
+    db = UserDatabase(db_path)
+    manager = LoginManager(db, sessions_dir=sessions_dir)
+
+    sessions = manager.available_sessions()
+    if not sessions:
+        print("pyos-login: no sessions available", file=sys.stderr)
+        return 1
+
+    print("PythonOS Login")
+    username = input("username: ")
+    password = getpass.getpass("password: ")
+
+    print("Available sessions: " + ", ".join(s.name for s in sessions))
+    session_name = input(f"session [{sessions[0].name}]: ") or sessions[0].name
+
+    try:
+        pid = manager.login(username, password, session_name)
+    except AuthenticationError as exc:
+        print(f"login failed: {exc}", file=sys.stderr)
+        return 1
+    except LoginError as exc:
+        print(f"pyos-login: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"session {session_name!r} started (pid={pid})")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

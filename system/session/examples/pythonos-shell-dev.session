@@ -1,0 +1,4 @@
+[Session]
+Name=PythonOS-Dev
+Exec=/usr/bin/python3 desktop/session/pythonos_shell_session.py
+Type=tty
