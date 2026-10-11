@@ -65,10 +65,14 @@ below).
 ## Phase 6 — Desktop (panel, launcher, notifications, widgets, virtual desktops, search, settings)
 `PARTIAL` — graphics stack decided and proven (PySide6/Qt, rendering
 verified both under Xvfb and headless `offscreen`, see docs/DESKTOP.md).
-Panel and launcher are real, working Qt widgets with 10 passing tests and
-a rendered screenshot (docs/panel-proof.png). No compositor to feed them
-real window events yet. Notifications, widgets (plasmoids), virtual
-desktops, global search, and settings are `PLANNED`.
+Panel and launcher are real, working Qt widgets. Window management is now
+real too: `desktop/windows/wm.py` is a working X11 window manager
+(python-xlib) proven against real X11 clients under Xvfb, wired to the
+panel's task manager in `desktop/session/graphical_session.py` — see
+docs/WINDOWS.md and the screenshot at docs/graphical-session-proof.png.
+67 unit tests pass in total (up from 64). No window
+decorations, focus handling, or multi-monitor yet. Notifications, widgets
+(plasmoids), virtual desktops, global search, and settings are `PLANNED`.
 
 ## Phase 7 — Applications
 `PLANNED`
@@ -86,10 +90,9 @@ desktops, global search, and settings are `PLANNED`.
 `PLANNED`
 
 ## Next up
-1. Compositor/window management: the biggest real gap in Phase 6. Needs
-   a decision — a minimal custom Wayland compositor (pywayland?) vs.
-   embedding kwin/another existing compositor and driving it — before
-   TaskManagerWidget can show real windows instead of manually-added ones.
+1. Make `GraphicalSession` an actual `SessionManager` component (today
+   it's started directly for dev/test, not through `LoginManager` →
+   `SessionManager` → primary component) and add window decorations.
 2. Notifications, KRunner-equivalent global search, settings app.
 3. Finish Phase 3: `system/audio`, `system/devices`.
 4. Wire real service units (users/network/power/login) into the
