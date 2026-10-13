@@ -65,14 +65,21 @@ below).
 ## Phase 6 — Desktop (panel, launcher, notifications, widgets, virtual desktops, search, settings)
 `PARTIAL` — graphics stack decided and proven (PySide6/Qt, rendering
 verified both under Xvfb and headless `offscreen`, see docs/DESKTOP.md).
-Panel and launcher are real, working Qt widgets. Window management is now
-real too: `desktop/windows/wm.py` is a working X11 window manager
+Panel and launcher are real, working Qt widgets, now restyled to closely
+match the KDE Plasma/Breeze look: a real theme engine
+(`desktop/theme/theme_manager.py`, two themes — PythonOS Dark/Light,
+palettes inspired by public Breeze color values, QSS written from
+scratch), a Kickoff-style launcher (search bar + category sidebar + app
+list, see `desktop/launcher/launcher_widget.py`), and a gradient desktop
+background (`desktop/background/wallpaper_widget.py`). Window management
+is real: `desktop/windows/wm.py` is a working X11 window manager
 (python-xlib) proven against real X11 clients under Xvfb, wired to the
 panel's task manager in `desktop/session/graphical_session.py` — see
-docs/WINDOWS.md and the screenshot at docs/graphical-session-proof.png.
-67 unit tests pass in total (up from 64). No window
-decorations, focus handling, or multi-monitor yet. Notifications, widgets
-(plasmoids), virtual desktops, global search, and settings are `PLANNED`.
+docs/WINDOWS.md. Full assembled desktop proof (wallpaper + styled panel +
+open launcher + a real tracked window) at docs/desktop-proof.png.
+75 unit tests pass in total (up from 64). No window decorations, focus
+handling, or multi-monitor yet. Notifications, widgets (plasmoids),
+virtual desktops, global search, and settings app are `PLANNED`.
 
 ## Phase 7 — Applications
 `PLANNED`

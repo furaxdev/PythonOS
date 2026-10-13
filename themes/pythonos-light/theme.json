@@ -1,0 +1,21 @@
+{
+  "name": "PythonOS Light",
+  "variant": "light",
+  "inspired_by": "KDE Breeze Light (colors/measurements studied from public KDE docs, QSS written from scratch — see docs/DESKTOP.md)",
+  "colors": {
+    "window_bg": "#eff0f1",
+    "panel_bg": "#e3e5e7",
+    "view_bg": "#fcfcfc",
+    "text": "#232629",
+    "text_disabled": "#7f8c8d",
+    "accent": "#2980b9",
+    "accent_hover": "#3daee9",
+    "border": "#bdc3c7",
+    "button_bg": "#fcfcfc",
+    "button_hover": "#d9dadb",
+    "selection_bg": "#2980b9",
+    "selection_text": "#fcfcfc",
+    "wallpaper_start": "#3daee9",
+    "wallpaper_end": "#eff0f1"
+  }
+}

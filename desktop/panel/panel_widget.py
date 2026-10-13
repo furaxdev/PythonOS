@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QWidget
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QStyle, QWidget
 
 from desktop.launcher.launcher_widget import LauncherWidget
 
-PANEL_HEIGHT = 40
+PANEL_HEIGHT = 44
 
 
 class TaskManagerWidget(QWidget):
@@ -27,6 +27,7 @@ class TaskManagerWidget(QWidget):
         super().__init__(parent)
         self.layout_ = QHBoxLayout(self)
         self.layout_.setContentsMargins(4, 0, 4, 0)
+        self.layout_.setSpacing(4)
         self._buttons: dict[str, QPushButton] = {}
 
     def add_window(self, window_id: str, title: str) -> None:
@@ -34,6 +35,7 @@ class TaskManagerWidget(QWidget):
             self._buttons[window_id].setText(title)
             return
         btn = QPushButton(title, self)
+        btn.setObjectName("TaskButton")
         self.layout_.addWidget(btn)
         self._buttons[window_id] = btn
 
@@ -50,6 +52,7 @@ class TaskManagerWidget(QWidget):
 class ClockWidget(QLabel):
     def __init__(self, fmt: str = "%H:%M:%S", parent=None):
         super().__init__(parent)
+        self.setObjectName("ClockLabel")
         self.fmt = fmt
         self._timer = QTimer(self)
         self._timer.timeout.connect(self.tick)
@@ -73,6 +76,7 @@ class SystemTrayWidget(QWidget):
     def set_item(self, name: str, text: str) -> None:
         if name not in self._items:
             label = QLabel(self)
+            label.setObjectName("TrayItem")
             self.layout_.addWidget(label)
             self._items[name] = label
         self._items[name].setText(text)
@@ -85,10 +89,17 @@ class SystemTrayWidget(QWidget):
 class PanelWidget(QWidget):
     def __init__(self, apps_dir=None, parent=None):
         super().__init__(parent)
+        self.setObjectName("Panel")
+        self.setAttribute(Qt.WA_StyledBackground, True)
         self.setFixedHeight(PANEL_HEIGHT)
 
-        self.launcher_button = QPushButton("PythonOS", self)
+        self.launcher_button = QPushButton(" PythonOS", self)
+        self.launcher_button.setObjectName("LauncherButton")
+        icon = self.style().standardIcon(QStyle.SP_DesktopIcon)
+        self.launcher_button.setIcon(icon)
         self.launcher = LauncherWidget(apps_dir=apps_dir) if apps_dir else LauncherWidget()
+        self.launcher.setWindowTitle("PythonOS Launcher")
+        self.launcher.resize(420, 480)
         self.launcher.hide()
         self.launcher_button.clicked.connect(self._toggle_launcher)
 
@@ -97,7 +108,8 @@ class PanelWidget(QWidget):
         self.clock = ClockWidget(parent=self)
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(4, 0, 4, 0)
+        layout.setContentsMargins(6, 0, 10, 0)
+        layout.setSpacing(6)
         layout.addWidget(self.launcher_button)
         layout.addWidget(self.task_manager, stretch=1)
         layout.addWidget(self.tray)

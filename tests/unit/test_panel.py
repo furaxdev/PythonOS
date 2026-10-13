@@ -39,4 +39,4 @@ def test_panel_widget_builds_with_launcher_and_clock(tmp_path, qapp):
     panel.launcher_button.click()
     assert panel.launcher.isHidden()
 
-    assert panel.height() == 40
+    assert panel.height() == 44

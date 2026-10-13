@@ -1,0 +1,21 @@
+{
+  "name": "PythonOS Dark",
+  "variant": "dark",
+  "inspired_by": "KDE Breeze Dark (colors/measurements studied from public KDE docs, QSS written from scratch — see docs/DESKTOP.md)",
+  "colors": {
+    "window_bg": "#232629",
+    "panel_bg": "#2a2e32",
+    "view_bg": "#1b1e20",
+    "text": "#eff0f1",
+    "text_disabled": "#7f8c8d",
+    "accent": "#3daee9",
+    "accent_hover": "#5bc4fc",
+    "border": "#1b1e20",
+    "button_bg": "#31363b",
+    "button_hover": "#3a4044",
+    "selection_bg": "#3daee9",
+    "selection_text": "#fcfcfc",
+    "wallpaper_start": "#1d99f3",
+    "wallpaper_end": "#2a2e32"
+  }
+}
