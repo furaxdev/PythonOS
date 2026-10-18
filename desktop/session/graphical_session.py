@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from PySide6.QtCore import QTimer  # noqa: E402
+from PySide6.QtCore import Qt, QTimer  # noqa: E402
 from PySide6.QtWidgets import QApplication  # noqa: E402
 
 from desktop.background.wallpaper_widget import WallpaperWidget  # noqa: E402
@@ -35,6 +35,16 @@ class GraphicalSession:
 
         self.wallpaper = WallpaperWidget(theme=self.theme)
         self.panel = PanelWidget(apps_dir=apps_dir)
+
+        # PythonOS's own shell chrome (desktop background, panel, launcher
+        # popup) must bypass our own window manager the same way a real
+        # desktop's panel/dock does: an override-redirect window never
+        # generates a MapRequest at all, so it's never reparented into a
+        # decorated frame and never shows up as a "task". Without this,
+        # our own WM would put a titlebar on the wallpaper and panel.
+        for chrome in (self.wallpaper, self.panel, self.panel.launcher):
+            chrome.setWindowFlag(Qt.X11BypassWindowManagerHint, True)
+
         self.wm = WindowManager(
             display_name=display_name,
             on_window_opened=self._on_window_opened,
@@ -42,14 +52,8 @@ class GraphicalSession:
         )
         self._poll_timer = QTimer()
         self._poll_timer.timeout.connect(self.wm.process_pending_events)
-        self._own_window_ids: set[int] = set()
-
-    _CHROME_TITLES = {"PythonOS Launcher"}
 
     def _on_window_opened(self, window_id: int, title: str) -> None:
-        if window_id in self._own_window_ids or title in self._CHROME_TITLES:
-            self._own_window_ids.add(window_id)
-            return  # our own chrome (wallpaper, panel, launcher popup) isn't a task
         self.panel.task_manager.add_window(str(window_id), title)
 
     def _on_window_closed(self, window_id: int) -> None:
@@ -69,7 +73,6 @@ class GraphicalSession:
         self.panel.setGeometry(0, screen.height() - PANEL_HEIGHT, screen.width(), PANEL_HEIGHT)
         self.panel.show()
 
-        self._own_window_ids = {int(self.wallpaper.winId()), int(self.panel.winId())}
         self._poll_timer.start(50)
 
     def run(self) -> int:

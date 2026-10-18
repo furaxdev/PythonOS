@@ -75,11 +75,20 @@ background (`desktop/background/wallpaper_widget.py`). Window management
 is real: `desktop/windows/wm.py` is a working X11 window manager
 (python-xlib) proven against real X11 clients under Xvfb, wired to the
 panel's task manager in `desktop/session/graphical_session.py` — see
-docs/WINDOWS.md. Full assembled desktop proof (wallpaper + styled panel +
-open launcher + a real tracked window) at docs/desktop-proof.png.
-75 unit tests pass in total (up from 64). No window decorations, focus
-handling, or multi-monitor yet. Notifications, widgets (plasmoids),
-virtual desktops, global search, and settings app are `PLANNED`.
+docs/WINDOWS.md. **Window decorations are now real too**: every client is
+reparented into a frame with a drawn titlebar and working
+minimize/maximize/close buttons (verified via `query_tree()` reparenting
++ a synthetic click on the real close button's coordinates actually
+closing the real client — see docs/WINDOWS.md). PythonOS's own shell
+chrome (wallpaper/panel/launcher) is override-redirect so it stays
+undecorated, same technique a real desktop's panel/dock uses. Full
+assembled desktop proof (wallpaper + styled panel + open launcher + a
+real window with a working titlebar) at
+docs/window-decorations-proof.png. 77 unit tests pass in total (up from
+64). No window dragging/resizing, no focus handling, no multi-monitor,
+close is forceful (no WM_DELETE_WINDOW) yet. Notifications, widgets
+(plasmoids), virtual desktops, global search, and settings app are
+`PLANNED`.
 
 ## Phase 7 — Applications
 `PLANNED`
@@ -97,10 +106,13 @@ virtual desktops, global search, and settings app are `PLANNED`.
 `PLANNED`
 
 ## Next up
-1. Make `GraphicalSession` an actual `SessionManager` component (today
+1. Notifications center, KRunner-equivalent global search, settings app.
+2. Make `GraphicalSession` an actual `SessionManager` component (today
    it's started directly for dev/test, not through `LoginManager` →
-   `SessionManager` → primary component) and add window decorations.
-2. Notifications, KRunner-equivalent global search, settings app.
+   `SessionManager` → primary component).
 3. Finish Phase 3: `system/audio`, `system/devices`.
 4. Wire real service units (users/network/power/login) into the
    initramfs boot chain, replacing the placeholder oneshot examples.
+5. Phase 7 apps (file manager, text editor, calculator, system monitor),
+   Phase 8 package manager, Phase 9 installer, Phase 10 bootable ISO
+   (GRUB) so it can run in VirtualBox too, Phase 11 polish.
